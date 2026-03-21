@@ -66,7 +66,19 @@ async function handleSubmit() {
   border-radius: 20px;
   padding: 40px 36px;
   width: 400px;
+  max-width: calc(100vw - 32px);
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+}
+
+@media (max-width: 768px) {
+  .login-card {
+    padding: 28px 20px;
+    width: auto;
+  }
+
+  .login-card h1 {
+    font-size: 22px;
+  }
 }
 
 .login-card .brand-tag {

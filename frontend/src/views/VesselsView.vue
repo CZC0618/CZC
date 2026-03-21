@@ -54,6 +54,7 @@
       <div class="search-bar">
         <input v-model="search" placeholder="搜索船舶名称、IMO、状态、港口…" @input="onSearch" />
       </div>
+      <div class="table-wrap">
       <table class="table">
         <thead>
           <tr>
@@ -87,6 +88,7 @@
           </tr>
         </tbody>
       </table>
+      </div>
       <div class="pagination">
         <span>共 {{ total }} 条</span>
         <button :disabled="page <= 1" @click="goPage(page - 1)">上一页</button>

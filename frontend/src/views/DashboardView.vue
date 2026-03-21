@@ -40,6 +40,7 @@
 
     <div class="panel" style="margin-top: 20px">
       <h3 style="margin-top: 0">近期进出港计划</h3>
+      <div class="table-wrap">
       <table class="table">
         <thead>
           <tr>
@@ -65,6 +66,7 @@
           </tr>
         </tbody>
       </table>
+      </div>
     </div>
   </section>
 </template>

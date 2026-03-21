@@ -33,6 +33,7 @@
 
     <div class="panel">
       <h3 style="margin-top: 0">用户列表</h3>
+      <div class="table-wrap">
       <table class="table">
         <thead>
           <tr>
@@ -63,6 +64,7 @@
           </tr>
         </tbody>
       </table>
+      </div>
     </div>
 
     <!-- 编辑弹框 -->
