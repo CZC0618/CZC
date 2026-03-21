@@ -1,0 +1,8 @@
+node_modules
+dist
+.vite
+*.sqlite
+*.sqlite3
+*.db
+backend/data/
+data/

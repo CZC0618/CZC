@@ -1,0 +1,356 @@
+:root {
+  font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  color: #142033;
+  background: #f3f6fb;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 1280px;
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.page-subtitle {
+  margin: 8px 0 0;
+  color: #62708a;
+}
+
+.panel {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(20, 32, 51, 0.06);
+}
+
+.panel + .panel {
+  margin-top: 20px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 14px 12px;
+  text-align: left;
+  border-bottom: 1px solid #ebf0f7;
+  font-size: 14px;
+}
+
+.table th {
+  color: #62708a;
+  font-weight: 600;
+}
+
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #e9f4ff;
+  color: #0369a1;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #334155;
+  font-size: 14px;
+}
+
+.form-grid input,
+.form-grid select {
+  height: 42px;
+  border: 1px solid #d7dfeb;
+  border-radius: 10px;
+  padding: 0 12px;
+  background: #fff;
+}
+
+.primary-button {
+  height: 42px;
+  border: none;
+  border-radius: 10px;
+  padding: 0 18px;
+  background: linear-gradient(135deg, #1d4ed8, #0369a1);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.stat-card {
+  padding: 20px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #ffffff, #edf4ff);
+  border: 1px solid #e1e9f6;
+}
+
+.stat-card small {
+  display: block;
+  color: #62708a;
+  margin-bottom: 10px;
+}
+
+.stat-card strong {
+  font-size: 32px;
+}
+
+/* ---------- Search bar ---------- */
+.search-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.search-bar input {
+  flex: 1;
+  height: 42px;
+  border: 1px solid #d7dfeb;
+  border-radius: 10px;
+  padding: 0 14px;
+  font-size: 14px;
+  background: #fff;
+}
+
+/* ---------- Action buttons ---------- */
+.action-cell {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-edit,
+.btn-delete {
+  padding: 4px 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-edit {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.btn-edit:hover {
+  background: #bae6fd;
+}
+
+.btn-delete {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.btn-delete:hover {
+  background: #fecaca;
+}
+
+.secondary-button {
+  height: 42px;
+  border: 1px solid #d7dfeb;
+  border-radius: 10px;
+  padding: 0 18px;
+  background: #fff;
+  color: #334155;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* ---------- Pagination ---------- */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+  font-size: 14px;
+  color: #62708a;
+}
+
+.pagination button {
+  padding: 6px 14px;
+  border: 1px solid #d7dfeb;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pagination button:not(:disabled):hover {
+  background: #f1f5f9;
+}
+
+/* ---------- Error / success messages ---------- */
+.error-msg {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.success-msg {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #16a34a;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+/* ---------- Status tag color variants ---------- */
+.status-tag.tag-green {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.status-tag.tag-orange {
+  background: #fff7ed;
+  color: #ea580c;
+}
+
+.status-tag.tag-red {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.status-tag.tag-gray {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+/* ---------- Confirm overlay ---------- */
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.confirm-box {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px;
+  min-width: 360px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+.confirm-box h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+.confirm-box p {
+  margin: 0 0 20px;
+  color: #62708a;
+  font-size: 14px;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.danger-button {
+  height: 42px;
+  border: none;
+  border-radius: 10px;
+  padding: 0 18px;
+  background: #dc2626;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* ---------- Empty state ---------- */
+.empty-row td {
+  text-align: center;
+  color: #94a3b8;
+  padding: 32px 12px;
+}
+
+/* ---------- Form buttons row ---------- */
+.form-actions {
+  display: flex;
+  gap: 10px;
+  align-items: end;
+}
+
+/* ---------- Category breakdown ---------- */
+.breakdown-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.breakdown-card {
+  padding: 14px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.breakdown-card small {
+  color: #62708a;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.breakdown-card strong {
+  font-size: 20px;
+}

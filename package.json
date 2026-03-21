@@ -1,0 +1,13 @@
+{
+  "name": "oil-port-management-system",
+  "private": true,
+  "version": "0.1.0",
+  "description": "石油公司进出港管理系统简易框架",
+  "scripts": {
+    "install:all": "npm install --prefix backend && npm install --prefix frontend",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "start:backend": "npm --prefix backend run start",
+    "build:frontend": "npm --prefix frontend run build"
+  }
+}
