@@ -8,6 +8,8 @@
     "dev:backend": "npm --prefix backend run dev",
     "dev:frontend": "npm --prefix frontend run dev",
     "start:backend": "npm --prefix backend run start",
-    "build:frontend": "npm --prefix frontend run build"
+    "build:frontend": "npm --prefix frontend run build",
+    "build": "npm install --prefix backend && npm install --prefix frontend && npm --prefix frontend run build",
+    "start": "node backend/src/server.js"
   }
 }

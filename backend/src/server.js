@@ -1,5 +1,8 @@
 import cors from "cors";
 import express from "express";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { initDatabase } from "./db.js";
 import { authenticate, requireRole } from "./middleware/auth.js";
 import authRouter from "./routes/auth.js";
@@ -9,6 +12,7 @@ import portCallsRouter from "./routes/portCalls.js";
 import receiptsRouter from "./routes/receipts.js";
 import vesselsRouter from "./routes/vessels.js";
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -28,6 +32,15 @@ app.use("/api/vessels", authenticate, requireRole("super_admin", "port_admin"), 
 app.use("/api/cargoes", authenticate, requireRole("super_admin", "port_admin"), cargoesRouter);
 app.use("/api/port-calls", authenticate, requireRole("super_admin", "port_admin"), portCallsRouter);
 app.use("/api/receipts", authenticate, requireRole("super_admin", "finance_admin"), receiptsRouter);
+
+/* 生产环境：托管前端静态文件 */
+const distPath = path.resolve(__dirname, "../../frontend/dist");
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+  app.get("*", (_req, res) => {
+    res.sendFile(path.join(distPath, "index.html"));
+  });
+}
 
 app.use((error, _request, response, _next) => {
   console.error(error);
