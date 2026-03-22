@@ -31,3 +31,48 @@ a {
   color: #62708a;
 }
 
+/* ========== 移动端响应式 ========== */
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 20px;
+  }
+
+  .page-subtitle {
+    font-size: 13px;
+  }
+
+  /* el-dialog 全屏适配 */
+  .el-dialog {
+    --el-dialog-width: calc(100vw - 32px) !important;
+    width: calc(100vw - 32px) !important;
+    max-width: 100%;
+    margin: 16px auto !important;
+  }
+
+  /* el-table 允许横向滚动 */
+  .el-table {
+    width: 100%;
+  }
+
+  .el-card__body {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* el-pagination 居中 */
+  .el-pagination {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* el-input 搜索框全宽 */
+  .el-card .el-input {
+    max-width: 100% !important;
+  }
+
+  /* el-statistic 卡片间距 */
+  .el-col {
+    margin-bottom: 8px;
+  }
+}
+
