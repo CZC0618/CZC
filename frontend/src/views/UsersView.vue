@@ -3,106 +3,77 @@
     <h2 class="page-title">用户管理</h2>
     <p class="page-subtitle">管理系统用户账户及角色权限分配。</p>
 
-    <div v-if="errorMsg" class="error-msg">{{ errorMsg }}</div>
-    <div v-if="successMsg" class="success-msg">{{ successMsg }}</div>
+    <el-alert v-if="errorMsg" :title="errorMsg" type="error" show-icon :closable="false" style="margin:16px 0" />
+    <el-alert v-if="successMsg" :title="successMsg" type="success" show-icon :closable="false" style="margin:16px 0" />
 
-    <div class="panel">
-      <h3 style="margin-top: 0">添加用户</h3>
-      <form class="form-grid" @submit.prevent="doCreate">
-        <label>
-          用户名
-          <input v-model="createForm.username" required />
-        </label>
-        <label>
-          密码
-          <input v-model="createForm.password" required type="password" placeholder="至少 6 位" />
-        </label>
-        <label>
-          角色
-          <select v-model="createForm.role">
-            <option value="super_admin">超级管理员</option>
-            <option value="port_admin">进出港管理员</option>
-            <option value="finance_admin">财务管理员</option>
-          </select>
-        </label>
-        <div class="form-actions">
-          <button class="primary-button" type="submit">添加用户</button>
+    <el-card shadow="hover" style="margin-top:20px">
+      <template #header>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-weight:600">用户列表</span>
+          <el-button type="primary" @click="openCreate">添加用户</el-button>
         </div>
-      </form>
-    </div>
+      </template>
+      <el-table :data="users" stripe>
+        <el-table-column prop="id" label="ID" width="80" />
+        <el-table-column prop="username" label="用户名" />
+        <el-table-column label="角色" width="140">
+          <template #default="{ row }">
+            <el-tag :type="roleTagType(row.role)" size="small">{{ roleLabel(row.role) }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="createdAt" label="创建时间" width="180" />
+        <el-table-column label="操作" width="160" fixed="right">
+          <template #default="{ row }">
+            <el-button size="small" type="primary" link @click="startEdit(row)">编辑</el-button>
+            <el-button v-if="row.id !== currentUserId" size="small" type="danger" link @click="confirmDelete(row)">删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-card>
 
-    <div class="panel">
-      <h3 style="margin-top: 0">用户列表</h3>
-      <div class="table-wrap">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>用户名</th>
-            <th>角色</th>
-            <th>创建时间</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-if="users.length === 0">
-            <td colspan="5" class="empty-row">暂无数据</td>
-          </tr>
-          <tr v-for="u in users" :key="u.id">
-            <td>{{ u.id }}</td>
-            <td>{{ u.username }}</td>
-            <td>
-              <span class="status-tag" :class="roleTagClass(u.role)">{{ roleLabel(u.role) }}</span>
-            </td>
-            <td>{{ u.createdAt }}</td>
-            <td>
-              <div class="action-cell">
-                <button class="btn-edit" @click="startEdit(u)">编辑</button>
-                <button v-if="u.id !== currentUserId" class="btn-delete" @click="confirmDelete(u)">删除</button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      </div>
-    </div>
+    <!-- 添加用户弹窗 -->
+    <el-dialog v-model="createVisible" title="添加用户" width="480" align-center>
+      <el-form :model="createForm" label-position="top" @submit.prevent="doCreate">
+        <el-form-item label="用户名"><el-input v-model="createForm.username" /></el-form-item>
+        <el-form-item label="密码"><el-input v-model="createForm.password" type="password" show-password placeholder="至少 6 位" /></el-form-item>
+        <el-form-item label="角色">
+          <el-select v-model="createForm.role" style="width:100%">
+            <el-option v-for="r in roles" :key="r.value" :label="r.label" :value="r.value" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="createVisible = false">取消</el-button>
+        <el-button type="primary" @click="doCreate">添加用户</el-button>
+      </template>
+    </el-dialog>
 
     <!-- 编辑弹框 -->
-    <div v-if="editing" class="confirm-overlay" @click.self="editing = null">
-      <div class="confirm-box">
-        <h3>编辑用户：{{ editing.username }}</h3>
-        <form @submit.prevent="doUpdate" style="display:flex;flex-direction:column;gap:14px">
-          <label style="display:flex;flex-direction:column;gap:6px;font-size:14px;color:#334155">
-            角色
-            <select v-model="editForm.role" style="height:40px;border:1px solid #d7dfeb;border-radius:8px;padding:0 10px;font-size:14px">
-              <option value="super_admin">超级管理员</option>
-              <option value="port_admin">进出港管理员</option>
-              <option value="finance_admin">财务管理员</option>
-            </select>
-          </label>
-          <label style="display:flex;flex-direction:column;gap:6px;font-size:14px;color:#334155">
-            新密码（留空则不修改）
-            <input v-model="editForm.password" type="password" placeholder="至少 6 位" style="height:40px;border:1px solid #d7dfeb;border-radius:8px;padding:0 10px;font-size:14px" />
-          </label>
-          <div class="confirm-actions">
-            <button class="secondary-button" type="button" @click="editing = null">取消</button>
-            <button class="primary-button" type="submit">保存</button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <el-dialog v-model="editVisible" :title="'编辑用户：' + (editing?.username || '')" width="460" align-center>
+      <el-form :model="editForm" label-position="top" @submit.prevent="doUpdate">
+        <el-form-item label="角色">
+          <el-select v-model="editForm.role" style="width:100%">
+            <el-option v-for="r in roles" :key="r.value" :label="r.label" :value="r.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="新密码（留空则不修改）">
+          <el-input v-model="editForm.password" type="password" show-password placeholder="至少 6 位" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="editVisible = false">取消</el-button>
+        <el-button type="primary" @click="doUpdate">保存</el-button>
+      </template>
+    </el-dialog>
 
     <!-- 删除确认 -->
-    <div v-if="deleting" class="confirm-overlay" @click.self="deleting = null">
-      <div class="confirm-box">
-        <h3>确认删除</h3>
-        <p>确定要删除用户「{{ deleting.username }}」吗？此操作不可撤销。</p>
-        <div class="confirm-actions">
-          <button class="secondary-button" @click="deleting = null">取消</button>
-          <button class="danger-button" @click="doDelete">删除</button>
-        </div>
-      </div>
-    </div>
+    <el-dialog v-model="deleteVisible" title="确认删除" width="420" align-center>
+      <p>确定要删除用户「{{ deleting?.username }}」吗？此操作不可撤销。</p>
+      <template #footer>
+        <el-button @click="deleteVisible = false">取消</el-button>
+        <el-button type="danger" @click="doDelete">删除</el-button>
+      </template>
+    </el-dialog>
   </section>
 </template>
 
@@ -111,12 +82,21 @@ import { onMounted, ref } from "vue";
 import { api } from "../api/http.js";
 import { auth } from "../auth.js";
 
+const roles = [
+  { value: "super_admin", label: "超级管理员" },
+  { value: "port_admin", label: "进出港管理员" },
+  { value: "finance_admin", label: "财务管理员" }
+];
+
 const users = ref([]);
 const errorMsg = ref("");
 const successMsg = ref("");
 const editing = ref(null);
+const editVisible = ref(false);
 const editForm = ref({ role: "", password: "" });
 const deleting = ref(null);
+const deleteVisible = ref(false);
+const createVisible = ref(false);
 const currentUserId = auth.user?.id;
 const createForm = ref({ username: "", password: "", role: "port_admin" });
 
@@ -125,10 +105,10 @@ function roleLabel(role) {
   return map[role] || role;
 }
 
-function roleTagClass(role) {
-  if (role === "super_admin") return "tag-red";
-  if (role === "port_admin") return "tag-orange";
-  if (role === "finance_admin") return "tag-green";
+function roleTagType(role) {
+  if (role === "super_admin") return "danger";
+  if (role === "port_admin") return "warning";
+  if (role === "finance_admin") return "success";
   return "";
 }
 
@@ -142,11 +122,18 @@ async function loadUsers() {
 
 function clearMessages() { errorMsg.value = ""; successMsg.value = ""; }
 
+function openCreate() {
+  clearMessages();
+  createForm.value = { username: "", password: "", role: "port_admin" };
+  createVisible.value = true;
+}
+
 async function doCreate() {
   clearMessages();
   try {
     await api.createUser(createForm.value);
     successMsg.value = "用户添加成功";
+    createVisible.value = false;
     createForm.value = { username: "", password: "", role: "port_admin" };
     await loadUsers();
   } catch (e) {
@@ -158,6 +145,7 @@ function startEdit(u) {
   clearMessages();
   editing.value = u;
   editForm.value = { role: u.role, password: "" };
+  editVisible.value = true;
 }
 
 async function doUpdate() {
@@ -166,6 +154,7 @@ async function doUpdate() {
     const payload = { role: editForm.value.role };
     if (editForm.value.password) payload.password = editForm.value.password;
     await api.updateUser(editing.value.id, payload);
+    editVisible.value = false;
     editing.value = null;
     successMsg.value = "更新成功";
     await loadUsers();
@@ -177,15 +166,18 @@ async function doUpdate() {
 function confirmDelete(u) {
   clearMessages();
   deleting.value = u;
+  deleteVisible.value = true;
 }
 
 async function doDelete() {
   try {
     await api.deleteUser(deleting.value.id);
+    deleteVisible.value = false;
     deleting.value = null;
     successMsg.value = "删除成功";
     await loadUsers();
   } catch (e) {
+    deleteVisible.value = false;
     deleting.value = null;
     errorMsg.value = e.message;
   }

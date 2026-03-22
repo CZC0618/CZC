@@ -3,76 +3,47 @@
     <h2 class="page-title">港口业务概览</h2>
     <p class="page-subtitle">查看当前船舶、货物与进出港任务的整体情况。</p>
 
-    <div class="stats-grid" style="margin-top: 20px">
-      <article class="stat-card">
-        <small>船舶总数</small>
-        <strong>{{ dashboard.stats.totalVessels }}</strong>
-      </article>
-      <article class="stat-card">
-        <small>货物总数</small>
-        <strong>{{ dashboard.stats.totalCargoes }}</strong>
-      </article>
-      <article class="stat-card">
-        <small>在港船舶</small>
-        <strong>{{ dashboard.stats.inPortVessels }}</strong>
-      </article>
-      <article class="stat-card">
-        <small>进行中作业</small>
-        <strong>{{ dashboard.stats.totalPortCalls }}</strong>
-      </article>
-      <article class="stat-card" :style="dashboard.stats.delayedPortCalls > 0 ? 'border-color:#fecaca;background:linear-gradient(135deg,#fff,#fef2f2)' : ''">
-        <small>延误作业</small>
-        <strong :style="dashboard.stats.delayedPortCalls > 0 ? 'color:#dc2626' : ''">{{ dashboard.stats.delayedPortCalls }}</strong>
-      </article>
-    </div>
+    <el-row :gutter="16" style="margin-top: 20px">
+      <el-col :xs="12" :sm="8" :md="4" :lg="4" v-for="stat in statCards" :key="stat.label">
+        <el-card shadow="hover" :body-style="stat.danger ? { borderTop: '3px solid #f56c6c' } : {}">
+          <el-statistic :title="stat.label" :value="stat.value" :value-style="stat.danger ? { color: '#dc2626' } : {}" />
+        </el-card>
+      </el-col>
+    </el-row>
 
     <!-- 货物类别分布 -->
-    <div v-if="dashboard.categoryBreakdown.length" class="panel" style="margin-top: 20px">
-      <h3 style="margin-top: 0">货物类别分布</h3>
-      <div class="breakdown-grid">
-        <div v-for="cat in dashboard.categoryBreakdown" :key="cat.category" class="breakdown-card">
-          <small>{{ cat.category }}</small>
-          <strong>{{ cat.count }} 批</strong>
-          <span style="display:block;color:#62708a;font-size:13px;margin-top:2px">{{ cat.totalTons?.toLocaleString() }} 吨</span>
-        </div>
-      </div>
-    </div>
+    <el-card v-if="dashboard.categoryBreakdown.length" shadow="hover" style="margin-top: 20px">
+      <template #header><span style="font-weight:600">货物类别分布</span></template>
+      <el-row :gutter="16">
+        <el-col :xs="24" :sm="8" v-for="cat in dashboard.categoryBreakdown" :key="cat.category">
+          <el-card shadow="never" style="background:#f8fafc;margin-bottom:12px">
+            <el-statistic :title="cat.category" :value="cat.count" suffix="批" />
+            <div style="color:#62708a;font-size:13px;margin-top:4px">{{ cat.totalTons?.toLocaleString() }} 吨</div>
+          </el-card>
+        </el-col>
+      </el-row>
+    </el-card>
 
-    <div class="panel" style="margin-top: 20px">
-      <h3 style="margin-top: 0">近期进出港计划</h3>
-      <div class="table-wrap">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>船舶</th>
-            <th>方向</th>
-            <th>泊位</th>
-            <th>货物</th>
-            <th>计划时间</th>
-            <th>状态</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-if="dashboard.recentPortCalls.length === 0">
-            <td colspan="6" class="empty-row">暂无数据</td>
-          </tr>
-          <tr v-for="item in dashboard.recentPortCalls" :key="`${item.vesselName}-${item.scheduledAt}`">
-            <td>{{ item.vesselName }}</td>
-            <td>{{ item.direction }}</td>
-            <td>{{ item.berth }}</td>
-            <td>{{ item.cargoName }}</td>
-            <td>{{ item.scheduledAt }}</td>
-            <td><span class="status-tag" :class="portCallTagClass(item.status)">{{ item.status }}</span></td>
-          </tr>
-        </tbody>
-      </table>
-      </div>
-    </div>
+    <el-card shadow="hover" style="margin-top: 20px">
+      <template #header><span style="font-weight:600">近期进出港计划</span></template>
+      <el-table :data="dashboard.recentPortCalls" stripe>
+        <el-table-column prop="vesselName" label="船舶" />
+        <el-table-column prop="direction" label="方向" width="80" />
+        <el-table-column prop="berth" label="泊位" width="100" />
+        <el-table-column prop="cargoName" label="货物" />
+        <el-table-column prop="scheduledAt" label="计划时间" width="180" />
+        <el-table-column label="状态" width="120">
+          <template #default="{ row }">
+            <el-tag :type="portCallTagType(row.status)" size="small">{{ row.status }}</el-tag>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-card>
   </section>
 </template>
 
 <script setup>
-import { onMounted, reactive } from "vue";
+import { computed, onMounted, reactive } from "vue";
 import { api } from "../api/http.js";
 
 const dashboard = reactive({
@@ -87,11 +58,19 @@ const dashboard = reactive({
   recentPortCalls: []
 });
 
-function portCallTagClass(status) {
-  if (status === "作业中") return "tag-orange";
-  if (status === "已完成") return "tag-green";
-  if (status === "已取消") return "tag-gray";
-  if (status === "待放行") return "tag-red";
+const statCards = computed(() => [
+  { label: "船舶总数", value: dashboard.stats.totalVessels },
+  { label: "货物总数", value: dashboard.stats.totalCargoes },
+  { label: "在港船舶", value: dashboard.stats.inPortVessels },
+  { label: "进行中作业", value: dashboard.stats.totalPortCalls },
+  { label: "延误作业", value: dashboard.stats.delayedPortCalls, danger: dashboard.stats.delayedPortCalls > 0 }
+]);
+
+function portCallTagType(status) {
+  if (status === "作业中") return "warning";
+  if (status === "已完成") return "success";
+  if (status === "已取消") return "info";
+  if (status === "待放行") return "danger";
   return "";
 }
 

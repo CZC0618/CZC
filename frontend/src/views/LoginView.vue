@@ -1,34 +1,33 @@
 <template>
   <div class="login-page">
-    <div class="login-card">
+    <el-card class="login-card" shadow="always">
       <p class="brand-tag">PETRO PORT OPS</p>
       <h1>用户登录</h1>
       <p class="subtitle">石油公司进出港管理系统</p>
 
-      <div v-if="errorMsg" class="error-msg">{{ errorMsg }}</div>
+      <el-alert v-if="errorMsg" :title="errorMsg" type="error" show-icon :closable="false" style="margin-bottom: 16px" />
 
-      <form @submit.prevent="handleSubmit">
-        <label>
-          用户名
-          <input v-model="form.username" required autocomplete="username" />
-        </label>
-        <label>
-          密码
-          <input v-model="form.password" required type="password" autocomplete="current-password" />
-        </label>
-        <button class="primary-button" type="submit" :disabled="loading">
+      <el-form :model="form" @submit.prevent="handleSubmit" label-position="top">
+        <el-form-item label="用户名">
+          <el-input v-model="form.username" placeholder="请输入用户名" :prefix-icon="User" autocomplete="username" />
+        </el-form-item>
+        <el-form-item label="密码">
+          <el-input v-model="form.password" type="password" placeholder="请输入密码" :prefix-icon="Lock" show-password autocomplete="current-password" />
+        </el-form-item>
+        <el-button type="primary" native-type="submit" :loading="loading" size="large" style="width:100%">
           {{ loading ? '请稍候…' : '登录' }}
-        </button>
-      </form>
+        </el-button>
+      </el-form>
 
       <p class="toggle-text">账户由管理员统一分配，如需开通请联系超级管理员</p>
-    </div>
+    </el-card>
   </div>
 </template>
 
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { User, Lock } from "@element-plus/icons-vue";
 import { api } from "../api/http.js";
 import { auth } from "../auth.js";
 
@@ -62,23 +61,9 @@ async function handleSubmit() {
 }
 
 .login-card {
-  background: #fff;
-  border-radius: 20px;
-  padding: 40px 36px;
-  width: 400px;
+  width: 420px;
   max-width: calc(100vw - 32px);
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
-}
-
-@media (max-width: 768px) {
-  .login-card {
-    padding: 28px 20px;
-    width: auto;
-  }
-
-  .login-card h1 {
-    font-size: 22px;
-  }
+  border-radius: 16px;
 }
 
 .login-card .brand-tag {
@@ -100,49 +85,10 @@ async function handleSubmit() {
   font-size: 14px;
 }
 
-.login-card form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.login-card label {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  color: #334155;
-  font-size: 14px;
-}
-
-.login-card input,
-.login-card select {
-  height: 44px;
-  border: 1px solid #d7dfeb;
-  border-radius: 10px;
-  padding: 0 14px;
-  font-size: 15px;
-  background: #fff;
-}
-
-.login-card .primary-button {
-  margin-top: 8px;
-  width: 100%;
-}
-
-.login-card .primary-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 .toggle-text {
   text-align: center;
   margin: 20px 0 0;
   font-size: 14px;
   color: #62708a;
-}
-
-.toggle-text a {
-  color: #0369a1;
-  font-weight: 600;
 }
 </style>

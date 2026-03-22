@@ -3,140 +3,112 @@
     <h2 class="page-title">回执管理</h2>
     <p class="page-subtitle">记录货物交易回执信息，包括货量、金额及运输路线。</p>
 
-    <div v-if="canEdit" class="panel">
-      <h3 style="margin-top: 0">{{ editingId ? '编辑回执' : '新增回执' }}</h3>
-      <div v-if="errorMsg" class="error-msg">{{ errorMsg }}</div>
-      <div v-if="successMsg" class="success-msg">{{ successMsg }}</div>
-      <form class="form-grid" @submit.prevent="submitReceipt">
-        <label>
-          订单号
-          <input v-model="form.orderNo" required placeholder="例如 ORD-20260321-001" />
-        </label>
-        <label>
-          货量（吨）
-          <input v-model.number="form.quantityTons" required type="number" min="1" step="any" />
-        </label>
-        <label>
-          交易金额（元）
-          <input v-model.number="form.amount" required type="number" min="0.01" step="0.01" />
-        </label>
-        <label>
-          始发地
-          <input v-model="form.origin" required />
-        </label>
-        <label>
-          目的地
-          <input v-model="form.destination" required />
-        </label>
-        <label>
-          船舶名称
-          <select v-model="form.vesselName" required>
-            <option value="" disabled>请选择船舶</option>
-            <option v-for="v in vesselNames" :key="v" :value="v">{{ v }}</option>
-          </select>
-        </label>
-        <label>
-          交易状态
-          <select v-model="form.tradeStatus">
-            <option>待确认</option>
-            <option>交易中</option>
-            <option>交易完成</option>
-            <option>已取消</option>
-          </select>
-        </label>
-        <div class="form-actions">
-          <button class="primary-button" type="submit">{{ editingId ? '更新' : '保存回执' }}</button>
-          <button v-if="editingId" class="secondary-button" type="button" @click="cancelEdit">取消</button>
+    <el-card shadow="hover" style="margin-top:20px">
+      <template #header>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-weight:600">回执列表</span>
+          <el-button v-if="canEdit" type="primary" @click="openCreate">新增回执</el-button>
         </div>
-      </form>
-    </div>
+      </template>
+      <el-input v-model="search" placeholder="搜索订单号、船舶名称、始发地、目的地、交易状态…" :prefix-icon="Search" clearable @input="onSearch" style="margin-bottom:16px;max-width:400px" />
+      <el-table :data="receipts" stripe>
+        <el-table-column prop="id" label="编号" width="80" />
+        <el-table-column prop="orderNo" label="订单号" />
+        <el-table-column label="货量（吨）" width="120">
+          <template #default="{ row }">{{ row.quantityTons?.toLocaleString() }}</template>
+        </el-table-column>
+        <el-table-column label="交易金额（元）" width="140">
+          <template #default="{ row }">{{ row.amount?.toLocaleString(undefined, { minimumFractionDigits: 2 }) }}</template>
+        </el-table-column>
+        <el-table-column prop="origin" label="始发地" />
+        <el-table-column prop="destination" label="目的地" />
+        <el-table-column prop="vesselName" label="船舶名称" />
+        <el-table-column label="交易状态" width="120">
+          <template #default="{ row }">
+            <el-tag :type="tradeTagType(row.tradeStatus)" size="small">{{ row.tradeStatus }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="createdAt" label="创建时间" width="180" />
+        <el-table-column label="操作" width="160" fixed="right">
+          <template #default="{ row }">
+            <template v-if="canEdit">
+              <el-button size="small" type="primary" link @click="startEdit(row)">编辑</el-button>
+              <el-button size="small" type="danger" link @click="confirmDelete(row)">删除</el-button>
+            </template>
+            <span v-else style="color:#94a3b8;font-size:13px">只读</span>
+          </template>
+        </el-table-column>
+      </el-table>
+      <div style="display:flex;justify-content:flex-end;margin-top:16px">
+        <el-pagination
+          v-model:current-page="page"
+          :page-size="pageSize"
+          :total="total"
+          layout="total, prev, pager, next"
+          @current-change="goPage"
+        />
+      </div>
+    </el-card>
 
-    <div class="panel">
-      <h3 style="margin-top: 0">回执列表</h3>
-      <div class="search-bar">
-        <input v-model="search" placeholder="搜索订单号、船舶名称、始发地、目的地、交易状态…" @input="onSearch" />
-      </div>
-      <div class="table-wrap">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>编号</th>
-            <th>订单号</th>
-            <th>货量（吨）</th>
-            <th>交易金额（元）</th>
-            <th>始发地</th>
-            <th>目的地</th>
-            <th>船舶名称</th>
-            <th>交易状态</th>
-            <th>创建时间</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-if="receipts.length === 0">
-            <td colspan="10" class="empty-row">暂无数据</td>
-          </tr>
-          <tr v-for="item in receipts" :key="item.id">
-            <td>{{ item.id }}</td>
-            <td>{{ item.orderNo }}</td>
-            <td>{{ item.quantityTons?.toLocaleString() }}</td>
-            <td>{{ item.amount?.toLocaleString(undefined, { minimumFractionDigits: 2 }) }}</td>
-            <td>{{ item.origin }}</td>
-            <td>{{ item.destination }}</td>
-            <td>{{ item.vesselName }}</td>
-            <td><span class="status-tag" :class="tradeTagClass(item.tradeStatus)">{{ item.tradeStatus }}</span></td>
-            <td>{{ item.createdAt }}</td>
-            <td>
-              <div v-if="canEdit" class="action-cell">
-                <button class="btn-edit" @click="startEdit(item)">编辑</button>
-                <button class="btn-delete" @click="confirmDelete(item)">删除</button>
-              </div>
-              <span v-else style="color:#94a3b8;font-size:13px">只读</span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      </div>
-      <div class="pagination">
-        <span>共 {{ total }} 条</span>
-        <button :disabled="page <= 1" @click="goPage(page - 1)">上一页</button>
-        <span>{{ page }} / {{ totalPages }}</span>
-        <button :disabled="page >= totalPages" @click="goPage(page + 1)">下一页</button>
-      </div>
-    </div>
+    <!-- 新增/编辑弹窗 -->
+    <el-dialog v-model="formVisible" :title="editingId ? '编辑回执' : '新增回执'" width="620" align-center @closed="cancelEdit">
+      <el-alert v-if="errorMsg" :title="errorMsg" type="error" show-icon :closable="false" style="margin-bottom:16px" />
+      <el-form :model="form" label-position="top" @submit.prevent="submitReceipt">
+        <el-row :gutter="16">
+          <el-col :xs="24" :sm="12"><el-form-item label="订单号"><el-input v-model="form.orderNo" placeholder="例如 ORD-20260321-001" /></el-form-item></el-col>
+          <el-col :xs="24" :sm="12"><el-form-item label="货量（吨）"><el-input-number v-model="form.quantityTons" :min="1" style="width:100%" /></el-form-item></el-col>
+          <el-col :xs="24" :sm="12"><el-form-item label="交易金额（元）"><el-input-number v-model="form.amount" :min="0.01" :precision="2" style="width:100%" /></el-form-item></el-col>
+          <el-col :xs="24" :sm="12"><el-form-item label="始发地"><el-input v-model="form.origin" /></el-form-item></el-col>
+          <el-col :xs="24" :sm="12"><el-form-item label="目的地"><el-input v-model="form.destination" /></el-form-item></el-col>
+          <el-col :xs="24" :sm="12">
+            <el-form-item label="船舶名称">
+              <el-select v-model="form.vesselName" placeholder="请选择船舶" style="width:100%">
+                <el-option v-for="v in vesselNames" :key="v" :label="v" :value="v" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :xs="24" :sm="12">
+            <el-form-item label="交易状态">
+              <el-select v-model="form.tradeStatus" style="width:100%">
+                <el-option v-for="s in ['待确认','交易中','交易完成','已取消']" :key="s" :label="s" :value="s" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-form>
+      <template #footer>
+        <el-button @click="formVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitReceipt">{{ editingId ? '更新' : '保存回执' }}</el-button>
+      </template>
+    </el-dialog>
 
     <!-- 删除确认 -->
-    <div v-if="deleting" class="confirm-overlay" @click.self="deleting = null">
-      <div class="confirm-box">
-        <h3>确认删除</h3>
-        <p>确定要删除该回执（{{ deleting.vesselName }} - {{ deleting.origin }} → {{ deleting.destination }}）吗？此操作不可撤销。</p>
-        <div class="confirm-actions">
-          <button class="secondary-button" @click="deleting = null">取消</button>
-          <button class="danger-button" @click="doDelete">删除</button>
-        </div>
-      </div>
-    </div>
+    <el-dialog v-model="deleteVisible" title="确认删除" width="420" align-center>
+      <p>确定要删除该回执（{{ deleting?.vesselName }} - {{ deleting?.origin }} → {{ deleting?.destination }}）吗？此操作不可撤销。</p>
+      <template #footer>
+        <el-button @click="deleteVisible = false">取消</el-button>
+        <el-button type="danger" @click="doDelete">删除</el-button>
+      </template>
+    </el-dialog>
 
     <!-- 一致性警告弹框 -->
-    <div v-if="warningList.length" class="confirm-overlay" @click.self="dismissWarning">
-      <div class="confirm-box">
-        <h3 style="color:#ea580c">⚠ 数据不一致警告</h3>
-        <p>回执信息与船舶/货物记录存在以下不一致：</p>
-        <ul style="margin:0 0 16px;padding-left:20px;color:#dc2626;font-size:14px">
-          <li v-for="(w, i) in warningList" :key="i">{{ w }}</li>
-        </ul>
-        <p style="color:#62708a;font-size:13px">是否仍然提交该回执？</p>
-        <div class="confirm-actions">
-          <button class="secondary-button" @click="dismissWarning">取消</button>
-          <button class="primary-button" @click="forceSubmit">仍然提交</button>
-        </div>
-      </div>
-    </div>
+    <el-dialog v-model="warningVisible" title="⚠ 数据不一致警告" width="480" align-center>
+      <p>回执信息与船舶/货物记录存在以下不一致：</p>
+      <ul style="margin:0 0 16px;padding-left:20px;color:#dc2626;font-size:14px">
+        <li v-for="(w, i) in warningList" :key="i">{{ w }}</li>
+      </ul>
+      <p style="color:#62708a;font-size:13px">是否仍然提交该回执？</p>
+      <template #footer>
+        <el-button @click="dismissWarning">取消</el-button>
+        <el-button type="primary" @click="forceSubmit">仍然提交</el-button>
+      </template>
+    </el-dialog>
   </section>
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
+import { Search } from "@element-plus/icons-vue";
 import { api } from "../api/http.js";
 import { auth } from "../auth.js";
 
@@ -152,8 +124,14 @@ const search = ref("");
 const errorMsg = ref("");
 const successMsg = ref("");
 const editingId = ref(null);
+const formVisible = ref(false);
 const deleting = ref(null);
+const deleteVisible = ref(false);
 const warningList = ref([]);
+const warningVisible = computed({
+  get: () => warningList.value.length > 0,
+  set: (v) => { if (!v) warningList.value = []; }
+});
 
 const form = ref(defaultForm());
 
@@ -161,10 +139,10 @@ function defaultForm() {
   return { orderNo: "", quantityTons: null, amount: null, origin: "", destination: "", vesselName: "", tradeStatus: "待确认" };
 }
 
-function tradeTagClass(status) {
-  if (status === "交易完成") return "tag-green";
-  if (status === "交易中") return "tag-orange";
-  if (status === "已取消") return "tag-gray";
+function tradeTagType(status) {
+  if (status === "交易完成") return "success";
+  if (status === "交易中") return "warning";
+  if (status === "已取消") return "info";
   return "";
 }
 
@@ -194,6 +172,13 @@ function goPage(p) {
 
 function clearMessages() { errorMsg.value = ""; successMsg.value = ""; }
 
+function openCreate() {
+  clearMessages();
+  editingId.value = null;
+  form.value = defaultForm();
+  formVisible.value = true;
+}
+
 async function submitReceipt(force = false) {
   clearMessages();
   warningList.value = [];
@@ -217,6 +202,7 @@ async function submitReceipt(force = false) {
     }
 
     successMsg.value = editingId.value ? "更新成功" : "创建成功";
+    formVisible.value = false;
     cancelEdit();
     await loadReceipts();
   } catch (e) {
@@ -237,6 +223,7 @@ function startEdit(item) {
   clearMessages();
   editingId.value = item.id;
   form.value = { orderNo: item.orderNo || "", quantityTons: item.quantityTons, amount: item.amount, origin: item.origin, destination: item.destination, vesselName: item.vesselName, tradeStatus: item.tradeStatus || "待确认" };
+  formVisible.value = true;
 }
 
 function cancelEdit() {
@@ -247,15 +234,18 @@ function cancelEdit() {
 function confirmDelete(item) {
   clearMessages();
   deleting.value = item;
+  deleteVisible.value = true;
 }
 
 async function doDelete() {
   try {
     await api.deleteReceipt(deleting.value.id);
+    deleteVisible.value = false;
     deleting.value = null;
     successMsg.value = "删除成功";
     await loadReceipts();
   } catch (e) {
+    deleteVisible.value = false;
     deleting.value = null;
     errorMsg.value = e.message;
   }
